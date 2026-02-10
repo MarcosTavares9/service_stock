@@ -1,5 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { NotFoundException, ConflictException } from '../exceptions/business.exception';
+import { Injectable } from '@nestjs/common';
+import { NotFoundException, ConflictException } from '../core/business.exception';
 
 export interface IBaseRepository<T, ID = string | number> {
   findById(id: ID): Promise<T | null>;
@@ -46,4 +46,3 @@ export abstract class BaseCrudUseCase<T, ID = string | number> {
     return { message: `${this.resourceName} deletado com sucesso` };
   }
 }
-

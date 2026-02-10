@@ -1,14 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './infrastructure/app.module';
-import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
-import { TransformResponseInterceptor } from './shared/interceptors/transform-response.interceptor';
+import { ConfigService } from '@nestjs/config';
+import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './shared/core/http-exception.filter';
+import { AppConfig } from './shared/config/app.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  // Configuração global de validação
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,35 +21,40 @@ async function bootstrap() {
     }),
   );
 
-  // Exception Filter global
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Response Interceptor global (opcional - pode ser removido se não quiser transformar todas as respostas)
-  // app.useGlobalInterceptors(new TransformResponseInterceptor());
+  app.enableCors({
+    origin: AppConfig.getFrontendUrls(configService),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-api-key',
+      'x-tenant-id',
+    ],
+    credentials: true,
+    exposedHeaders: ['Authorization'],
+  });
 
-  // CORS
-  app.enableCors();
-
-  // Prefixo global da API
-  app.setGlobalPrefix('api');
-
-  // Swagger Documentation
   const config = new DocumentBuilder()
     .setTitle('Stock Control API')
     .setDescription('API para sistema de controle de estoque')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'bearer',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = AppConfig.getPort(configService);
   await app.listen(port);
-
-  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
-

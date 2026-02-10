@@ -1,43 +1,34 @@
 # Stock Control API
 
-API RESTful para sistema de controle de estoque desenvolvida em NestJS com arquitetura hexagonal.
+API RESTful para sistema de controle de estoque desenvolvida em NestJS com arquitetura modular.
 
 ## Arquitetura
 
-Este projeto utiliza arquitetura hexagonal (Ports and Adapters) para garantir:
+Este projeto utiliza arquitetura modular NestJS para garantir:
 
-- **Separação de responsabilidades**: Lógica de negócio isolada da infraestrutura
+- **Separação de responsabilidades**: Controller + Service + Entity por módulo
 - **Testabilidade**: Fácil criação de testes unitários e de integração
 - **Manutenibilidade**: Código organizado e fácil de entender
-- **Escalabilidade**: Fácil adicionar novos adapters sem modificar o core
+- **Escalabilidade**: Fácil adicionar novos módulos
 
 ### Estrutura de Pastas
 
 ```
 src/
-├── domain/           # Camada de domínio (entidades, value objects, ports)
-│   ├── auth/
-│   ├── products/
-│   ├── categories/
-│   ├── locations/
-│   ├── users/
-│   └── history/
-├── application/      # Camada de aplicação (use cases, DTOs)
-│   ├── auth/
-│   ├── products/
-│   ├── categories/
-│   ├── locations/
-│   ├── users/
-│   └── history/
-├── infrastructure/   # Camada de infraestrutura (repositórios, controllers, adapters)
-│   ├── database/
-│   ├── auth/
-│   ├── products/
-│   ├── categories/
-│   ├── locations/
-│   ├── users/
-│   └── history/
-└── shared/          # Código compartilhado (exceções, utils, etc)
+├── modules/           # Módulos da aplicação
+│   ├── auth/          # Autenticação (login, registro, JWT)
+│   ├── products/      # Produtos (CRUD + bulk operations)
+│   ├── categories/    # Categorias
+│   ├── locations/     # Localizações
+│   ├── users/         # Usuários
+│   ├── history/       # Histórico de movimentações
+│   ├── dashboard/     # Dashboard e estatísticas
+│   └── reports/       # Relatórios (CSV, Excel, PDF)
+└── shared/            # Código compartilhado
+    ├── core/          # Filters, interceptors, pipes, decorators, exceptions
+    ├── utils/         # Utilitários, constants, enums
+    ├── base/          # Classes base, interfaces globais
+    └── config/        # Configurações (database, etc)
 ```
 
 ## Instalação
@@ -48,16 +39,24 @@ npm install
 
 ## Configuração
 
-Crie um arquivo `.env` na raiz do projeto:
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
+**Opção 1: Supabase (Connection String) - RECOMENDADO**
 ```env
-# Database
+DB_URL=postgresql://user:password@host:port/database
+```
+
+**Opção 2: PostgreSQL Local (Configuração Individual)**
+```env
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=stock_control
+```
 
+**Outras variáveis:**
+```env
 # JWT
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=24h
@@ -99,3 +98,9 @@ npm run test:cov
 
 A documentação completa da API está disponível em `/api/docs` quando a aplicação estiver rodando.
 
+## Documentação Adicional
+
+- [Variáveis de Ambiente](docs/ENV_VARIABLES.md)
+- [Endpoints da API](docs/API_ENDPOINTS.md)
+- [Guia do Frontend](docs/FRONTEND_GUIDE.md)
+- [Status do Database](docs/DATABASE_STATUS.md)
