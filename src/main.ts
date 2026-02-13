@@ -26,12 +26,7 @@ async function bootstrap() {
   app.enableCors({
     origin: AppConfig.getFrontendUrls(configService),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'x-api-key',
-      'x-tenant-id',
-    ],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-tenant-id'],
     credentials: true,
     exposedHeaders: ['Authorization'],
   });
@@ -54,7 +49,8 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   const port = AppConfig.getPort(configService);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Servidor rodando na porta ${port}`);
 }
 
 bootstrap();

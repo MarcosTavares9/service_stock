@@ -4,7 +4,11 @@ import { IProductRepository } from '../products/product.repository';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { Location } from './location.entity';
-import { NotFoundException, ConflictException, BusinessException } from '../../shared/core/business.exception';
+import {
+  NotFoundException,
+  ConflictException,
+  BusinessException,
+} from '../../shared/core/business.exception';
 import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
 @Injectable()

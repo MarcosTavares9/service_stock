@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Inject,
-} from '@nestjs/common';
+import { Controller, Post, Body, Param, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,7 +7,12 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { VerifyTokenDto } from './dto/verify-token.dto';
 import { ITokenService } from './token.service';
 import { UnauthorizedException } from '../../shared/core/business.exception';
-import { EXAMPLE_UUID, EXAMPLE_EMAIL, EXAMPLE_NAME, EXAMPLE_LAST_NAME } from '../../shared/utils/example-values';
+import {
+  EXAMPLE_UUID,
+  EXAMPLE_EMAIL,
+  EXAMPLE_NAME,
+  EXAMPLE_LAST_NAME,
+} from '../../shared/utils/example-values';
 
 @ApiTags('Autenticação')
 @Controller('auth')
@@ -28,12 +25,13 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Autenticar usuário',
-    description: 'Realiza o login do usuário no sistema. Retorna um token JWT válido para autenticação em requisições subsequentes.'
+    description:
+      'Realiza o login do usuário no sistema. Retorna um token JWT válido para autenticação em requisições subsequentes.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     type: AuthResponseDto,
     description: 'Login realizado com sucesso',
     example: {
@@ -43,9 +41,9 @@ export class AuthController {
         firstName: EXAMPLE_NAME,
         lastName: EXAMPLE_LAST_NAME,
         email: EXAMPLE_EMAIL,
-        photo: null
-      }
-    }
+        photo: null,
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Email ou senha inválidos' })
   async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
@@ -54,36 +52,41 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Registrar novo usuário',
-    description: 'Cria uma nova conta de usuário no sistema. Um email de confirmação será enviado para ativação da conta.'
+    description:
+      'Cria uma nova conta de usuário no sistema. Um email de confirmação será enviado para ativação da conta.',
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Usuário criado com sucesso. Verifique seu email para confirmar a conta.',
     example: {
       message: 'Usuário criado com sucesso. Verifique seu email para confirmar a conta.',
-      userId: EXAMPLE_UUID
-    }
+      userId: EXAMPLE_UUID,
+    },
   })
-  @ApiResponse({ status: 400, description: 'Erro ao criar conta. Email já cadastrado ou dados inválidos.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao criar conta. Email já cadastrado ou dados inválidos.',
+  })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('confirm-registration/:token')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Confirmar registro de conta',
-    description: 'Ativa a conta do usuário através do token de confirmação enviado por email. O token é válido por 24 horas.'
+    description:
+      'Ativa a conta do usuário através do token de confirmação enviado por email. O token é válido por 24 horas.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Conta confirmada e ativada com sucesso',
     example: {
       message: 'Conta confirmada com sucesso',
-      userId: EXAMPLE_UUID
-    }
+      userId: EXAMPLE_UUID,
+    },
   })
   @ApiResponse({ status: 400, description: 'Token inválido ou expirado' })
   async confirmRegistration(@Param('token') token: string) {
@@ -92,12 +95,13 @@ export class AuthController {
 
   @Post('verify-token')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Verificar validade do token JWT',
-    description: 'Valida se um token JWT é válido e não expirado. Retorna informações do payload do token.'
+    description:
+      'Valida se um token JWT é válido e não expirado. Retorna informações do payload do token.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Token válido',
     example: {
       valid: true,
@@ -105,19 +109,19 @@ export class AuthController {
         id: '550e8400-e29b-41d4-a716-446655440000',
         email: 'joao@example.com',
         iat: 1705000000,
-        exp: 1705086400
+        exp: 1705086400,
       },
-      message: 'Token válido e não expirado'
-    }
+      message: 'Token válido e não expirado',
+    },
   })
   @ApiResponse({ status: 401, description: 'Token inválido ou expirado' })
   async verifyToken(@Body() dto: VerifyTokenDto) {
     try {
       const payload = this.tokenService.verifyToken(dto.token);
-      return { 
-        valid: true, 
+      return {
+        valid: true,
         payload,
-        message: 'Token válido e não expirado'
+        message: 'Token válido e não expirado',
       };
     } catch (error) {
       throw new UnauthorizedException('Token inválido: ' + (error as Error).message);

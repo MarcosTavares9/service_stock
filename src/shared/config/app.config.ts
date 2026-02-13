@@ -8,16 +8,12 @@ export class AppConfig {
   static getFrontendUrls(configService: ConfigService): string[] {
     const frontendUrl = configService.get<string>('FRONTEND_URL');
     const allowedOrigins = configService.get<string>('ALLOWED_ORIGINS');
-    
+
     if (allowedOrigins) {
-      return allowedOrigins.split(',').map(url => url.trim());
+      return allowedOrigins.split(',').map((url) => url.trim());
     }
 
-    const defaultUrls = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5174',
-    ];
+    const defaultUrls = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
 
     return frontendUrl ? [...defaultUrls, frontendUrl] : defaultUrls;
   }

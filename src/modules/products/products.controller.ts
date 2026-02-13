@@ -30,12 +30,13 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Listar todos os produtos',
-    description: 'Retorna uma lista completa de todos os produtos cadastrados no sistema, incluindo informações de estoque, categoria e localização.'
+    description:
+      'Retorna uma lista completa de todos os produtos cadastrados no sistema, incluindo informações de estoque, categoria e localização.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lista de produtos retornada com sucesso',
     example: {
       data: [
@@ -50,19 +51,20 @@ export class ProductsController {
           status: 'true',
           image: 'https://example.com/image.jpg',
           created_at: '2026-01-11T02:30:00.000Z',
-          updated_at: '2026-01-11T02:30:00.000Z'
-        }
-      ]
-    }
+          updated_at: '2026-01-11T02:30:00.000Z',
+        },
+      ],
+    },
   })
   async list() {
     return this.productsService.list();
   }
 
   @Get(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Buscar produto por UUID',
-    description: 'Retorna os detalhes completos de um produto específico identificado pelo seu UUID.'
+    description:
+      'Retorna os detalhes completos de um produto específico identificado pelo seu UUID.',
   })
   @ApiResponse({ status: 200, description: 'Produto encontrado com sucesso' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado com o UUID fornecido' })
@@ -71,9 +73,9 @@ export class ProductsController {
   }
 
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Criar novo produto',
-    description: 'Cria um novo produto no sistema com as informações fornecidas.'
+    description: 'Cria um novo produto no sistema com as informações fornecidas.',
   })
   @ApiResponse({ status: 201, description: 'Produto criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos fornecidos' })
@@ -82,9 +84,9 @@ export class ProductsController {
   }
 
   @Post('bulk')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Criar múltiplos produtos',
-    description: 'Cria vários produtos de uma vez através de uma lista.'
+    description: 'Cria vários produtos de uma vez através de uma lista.',
   })
   @ApiResponse({ status: 201, description: 'Produtos criados com sucesso' })
   @ApiResponse({ status: 400, description: 'Erro ao criar produtos.' })
@@ -96,9 +98,9 @@ export class ProductsController {
   }
 
   @Put(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Atualizar produto',
-    description: 'Atualiza as informações de um produto existente.'
+    description: 'Atualiza as informações de um produto existente.',
   })
   @ApiResponse({ status: 200, description: 'Produto atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
@@ -111,9 +113,9 @@ export class ProductsController {
   }
 
   @Put('bulk')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Atualizar múltiplos produtos',
-    description: 'Atualiza vários produtos de uma vez.'
+    description: 'Atualiza vários produtos de uma vez.',
   })
   @ApiResponse({ status: 200, description: 'Produtos atualizados com sucesso' })
   @ApiResponse({ status: 400, description: 'Erro ao atualizar produtos.' })
@@ -125,23 +127,20 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Deletar produto',
-    description: 'Remove um produto do sistema.'
+    description: 'Remove um produto do sistema.',
   })
   @ApiResponse({ status: 200, description: 'Produto deletado com sucesso' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async delete(
-    @Param('id') id: string,
-    @CurrentUser() user: { id: string; email: string },
-  ) {
+  async delete(@Param('id') id: string, @CurrentUser() user: { id: string; email: string }) {
     return this.productsService.delete(id, user.id);
   }
 
   @Delete('bulk')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Deletar múltiplos produtos',
-    description: 'Remove vários produtos do sistema de uma vez.'
+    description: 'Remove vários produtos do sistema de uma vez.',
   })
   @ApiResponse({ status: 200, description: 'Produtos deletados com sucesso' })
   @ApiResponse({ status: 400, description: 'Erro ao deletar produtos.' })
@@ -154,17 +153,14 @@ export class ProductsController {
 
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Upload imagem do produto',
-    description: 'Faz upload de uma imagem para um produto específico.'
+    description: 'Faz upload de uma imagem para um produto específico.',
   })
   @ApiResponse({ status: 200, description: 'Imagem enviada com sucesso' })
   @ApiResponse({ status: 400, description: 'Arquivo inválido ou formato não suportado' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async uploadImage(
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async uploadImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     FileUtil.validateImage(file);
     const imageUrl = `${AppConfig.getProductsUploadPath()}/${FileUtil.generateFileName(file.originalname)}`;
     return { image: imageUrl };

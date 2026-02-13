@@ -57,16 +57,12 @@ export class UserRepository implements IUserRepository {
     queryBuilder.where('user.status != :blocked', { blocked: EntityStatus.BLOCKED });
 
     if (search) {
-      queryBuilder.andWhere(
-        '(user.name ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` },
-      );
+      queryBuilder.andWhere('(user.name ILIKE :search OR user.email ILIKE :search)', {
+        search: `%${search}%`,
+      });
     }
 
-    const [users, total] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [users, total] = await queryBuilder.skip(skip).take(limit).getManyAndCount();
 
     return { users, total };
   }

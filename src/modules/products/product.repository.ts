@@ -81,7 +81,7 @@ export class ProductRepository implements IProductRepository {
       .orderBy('product.created_at', 'DESC')
       .getManyAndCount();
 
-    products.forEach(product => {
+    products.forEach((product) => {
       product.updateStockStatus();
     });
 
@@ -152,13 +152,13 @@ export class ProductRepository implements IProductRepository {
     }
 
     const products = await queryBuilder.getMany();
-    
-    products.forEach(product => {
+
+    products.forEach((product) => {
       product.updateStockStatus();
     });
-    
+
     return products.filter(
-      p => p.stock_status === ProductStatus.LOW || p.stock_status === ProductStatus.EMPTY
+      (p) => p.stock_status === ProductStatus.LOW || p.stock_status === ProductStatus.EMPTY,
     );
   }
 }

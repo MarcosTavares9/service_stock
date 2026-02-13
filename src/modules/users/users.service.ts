@@ -31,10 +31,12 @@ export class UsersService {
       search: params.search,
     });
 
-    const usersWithoutPassword = users.map(({ password, hashPassword, validatePassword, ...user }) => ({
-      ...user,
-      password: undefined,
-    }));
+    const usersWithoutPassword = users.map(
+      ({ password, hashPassword, validatePassword, ...user }) => ({
+        ...user,
+        password: undefined,
+      }),
+    );
 
     return PaginationUtil.create(usersWithoutPassword, total, page, limit);
   }
@@ -89,6 +91,7 @@ export class UsersService {
     if (dto.lastName !== undefined) user.last_name = dto.lastName;
     if (dto.status !== undefined) user.status = dto.status;
     if (dto.password !== undefined) user.password = dto.password;
+    if (dto.profilePicture !== undefined) user.profile_picture = dto.profilePicture;
 
     const updatedUser = await this.userRepository.update(user);
 
@@ -99,6 +102,8 @@ export class UsersService {
       firstName: userWithoutPassword.name,
       lastName: userWithoutPassword.last_name,
       email: userWithoutPassword.email,
+      phone: userWithoutPassword.phone,
+      profilePicture: userWithoutPassword.profile_picture,
       status: userWithoutPassword.status,
       emailConfirmed: userWithoutPassword.email_confirmed,
       createdAt: userWithoutPassword.created_at,
@@ -157,6 +162,7 @@ export class UsersService {
     user.name = dto.nome;
     if (dto.sobrenome !== undefined) user.last_name = dto.sobrenome;
     if (dto.telefone !== undefined) user.phone = dto.telefone;
+    if (dto.profilePicture !== undefined) user.profile_picture = dto.profilePicture;
 
     const updatedUser = await this.userRepository.update(user);
 

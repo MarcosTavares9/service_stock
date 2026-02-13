@@ -10,32 +10,32 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Obter estatísticas gerais do dashboard',
-    description: 'Retorna estatísticas consolidadas do sistema.'
+    description: 'Retorna estatísticas consolidadas do sistema.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Estatísticas retornadas com sucesso',
     example: {
       totalProducts: 150,
       totalCategories: 12,
       totalLocations: 5,
       lowStockProducts: 8,
-      emptyStockProducts: 2
-    }
+      emptyStockProducts: 2,
+    },
   })
   async getStats() {
     return this.dashboardService.getStats();
   }
 
   @Get('low-stock')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Listar produtos com estoque baixo',
-    description: 'Retorna uma lista de produtos que estão com estoque abaixo do mínimo ou vazio.'
+    description: 'Retorna uma lista de produtos que estão com estoque abaixo do mínimo ou vazio.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lista de produtos com estoque baixo retornada com sucesso',
     example: [
       {
@@ -49,9 +49,9 @@ export class DashboardController {
         status: 'true',
         image: null,
         created_at: '2026-01-11T02:30:00.000Z',
-        updated_at: '2026-01-11T02:30:00.000Z'
-      }
-    ]
+        updated_at: '2026-01-11T02:30:00.000Z',
+      },
+    ],
   })
   async getLowStock(@Query('limit') limit?: number) {
     return this.dashboardService.getLowStockProducts(limit);

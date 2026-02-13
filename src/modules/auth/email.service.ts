@@ -12,14 +12,10 @@ export class EmailService implements IEmailService {
 
   constructor(private readonly configService: ConfigService) {}
 
-  async sendConfirmationEmail(
-    email: string,
-    token: string,
-    name: string,
-  ): Promise<void> {
+  async sendConfirmationEmail(email: string, token: string, name: string): Promise<void> {
     const appUrl = AppConfig.getAppUrl(this.configService);
     const confirmationUrl = `${appUrl}/api/auth/confirm-registration/${token}`;
-    
+
     this.logger.log(`Email de confirmação para ${email}:`);
     this.logger.log(`URL: ${confirmationUrl}`);
   }

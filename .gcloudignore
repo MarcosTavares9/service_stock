@@ -1,0 +1,32 @@
+# Dependências (serão instaladas no build)
+node_modules/
+
+# Arquivos de desenvolvimento
+.git
+.gitignore
+.env
+.env.local
+.env.example
+env.production.yaml
+
+# Documentação
+docs/
+*.md
+
+# Banco de dados local
+database/
+
+# Testes
+test/
+*.spec.ts
+
+# IDE
+.vscode/
+.idea/
+
+# Dist local (será recriado no build)
+dist/
+
+# Outros
+.eslintrc.js
+.prettierrc

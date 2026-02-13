@@ -34,9 +34,9 @@ export class ProductsService {
       limit: AppConfig.getMaxListLimit(),
     });
 
-    const serializedProducts = products.map(product => {
+    const serializedProducts = products.map((product) => {
       const calculatedStatus = product.calculateStatus();
-      
+
       return {
         uuid: product.uuid,
         name: product.name,
@@ -127,7 +127,9 @@ export class ProductsService {
 
     if (dto.category_id !== undefined && dto.category_id !== valoresAnteriores.category_id) {
       if (valoresAnteriores.category_id) {
-        const categoriaAnterior = await this.categoryRepository.findById(valoresAnteriores.category_id);
+        const categoriaAnterior = await this.categoryRepository.findById(
+          valoresAnteriores.category_id,
+        );
         categoriaAnteriorNome = categoriaAnterior?.name || 'Desconhecida';
       }
       const categoriaNova = await this.categoryRepository.findById(dto.category_id);
@@ -136,7 +138,9 @@ export class ProductsService {
 
     if (dto.location_id !== undefined && dto.location_id !== valoresAnteriores.location_id) {
       if (valoresAnteriores.location_id) {
-        const localizacaoAnterior = await this.locationRepository.findById(valoresAnteriores.location_id);
+        const localizacaoAnterior = await this.locationRepository.findById(
+          valoresAnteriores.location_id,
+        );
         localizacaoAnteriorNome = localizacaoAnterior?.name || 'Desconhecida';
       }
       const localizacaoNova = await this.locationRepository.findById(dto.location_id);
@@ -144,34 +148,39 @@ export class ProductsService {
     }
 
     const alteracoes: string[] = [];
-    
+
     if (dto.name !== undefined && dto.name !== valoresAnteriores.name) {
       alteracoes.push(`Nome: "${valoresAnteriores.name}" → "${dto.name}"`);
     }
-    
+
     if (dto.category_id !== undefined && dto.category_id !== valoresAnteriores.category_id) {
-      alteracoes.push(`Categoria alterada de "${categoriaAnteriorNome || 'Nenhuma'}" para "${categoriaNovaNome}"`);
+      alteracoes.push(
+        `Categoria alterada de "${categoriaAnteriorNome || 'Nenhuma'}" para "${categoriaNovaNome}"`,
+      );
     }
-    
+
     if (dto.location_id !== undefined && dto.location_id !== valoresAnteriores.location_id) {
-      alteracoes.push(`Localização alterada de "${localizacaoAnteriorNome || 'Nenhuma'}" para "${localizacaoNovaNome}"`);
+      alteracoes.push(
+        `Localização alterada de "${localizacaoAnteriorNome || 'Nenhuma'}" para "${localizacaoNovaNome}"`,
+      );
     }
-    
+
     if (dto.quantity !== undefined && dto.quantity !== valoresAnteriores.quantity) {
       alteracoes.push(`Quantidade: ${valoresAnteriores.quantity} → ${dto.quantity}`);
     }
-    
+
     if (dto.minimum_stock !== undefined && dto.minimum_stock !== valoresAnteriores.minimum_stock) {
       alteracoes.push(`Estoque mínimo: ${valoresAnteriores.minimum_stock} → ${dto.minimum_stock}`);
     }
-    
+
     if (dto.image !== undefined && dto.image !== valoresAnteriores.image) {
       alteracoes.push(`Imagem alterada`);
     }
 
     if (alteracoes.length > 0) {
-      const quantidadeMudou = dto.quantity !== undefined && dto.quantity !== valoresAnteriores.quantity;
-      
+      const quantidadeMudou =
+        dto.quantity !== undefined && dto.quantity !== valoresAnteriores.quantity;
+
       await this.historyRepository.create({
         type: 'adjustment',
         product_id: updatedProduct.uuid,
@@ -256,7 +265,7 @@ export class ProductsService {
     for (const item of dto.products) {
       try {
         const product = await this.productRepository.findById(item.id);
-        
+
         if (!product) {
           results.failed.push({ id: item.id, error: 'Produto não encontrado' });
           continue;
@@ -271,26 +280,27 @@ export class ProductsService {
 
         product.updateStockStatus();
         const updatedProduct = await this.productRepository.update(product);
-        
+
         await this.historyRepository.create({
           type: 'adjustment',
           product_id: updatedProduct.uuid,
           user_id: userId,
           categories_id: updatedProduct.category_id,
           locations_id: updatedProduct.location_id,
-          quantity_changed: item.quantity !== undefined && item.quantity !== product.quantity 
-            ? item.quantity - product.quantity 
-            : 0,
+          quantity_changed:
+            item.quantity !== undefined && item.quantity !== product.quantity
+              ? item.quantity - product.quantity
+              : 0,
           previous_quantity: product.quantity,
           new_quantity: updatedProduct.quantity,
           observation: 'Produto atualizado em lote',
         });
-        
+
         results.updated.push(item.id);
       } catch (error) {
-        results.failed.push({ 
-          id: item.id, 
-          error: error instanceof Error ? error.message : 'Erro desconhecido' 
+        results.failed.push({
+          id: item.id,
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
         });
       }
     }
@@ -311,7 +321,7 @@ export class ProductsService {
     for (const id of dto.ids) {
       try {
         const product = await this.productRepository.findById(id);
-        
+
         if (!product) {
           results.failed.push({ id, error: 'Produto não encontrado' });
           continue;
@@ -335,9 +345,9 @@ export class ProductsService {
 
         results.deleted.push(id);
       } catch (error) {
-        results.failed.push({ 
-          id, 
-          error: error instanceof Error ? error.message : 'Erro desconhecido' 
+        results.failed.push({
+          id,
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
         });
       }
     }

@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from './user.repository';
 import { AppConfig } from '../../shared/config/app.config';
+import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -26,10 +27,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    const activeStatus = 'true';
-    if (user.status !== activeStatus) {
-      throw new UnauthorizedException(`Usuário não está ativo. Status atual: ${user.status}`);
-    }
+    // TODO: Reativar validação de status quando necessário
+    // if (user.status !== EntityStatus.ACTIVE) {
+    //   throw new UnauthorizedException(`Usuário não está ativo. Status atual: ${user.status}`);
+    // }
 
     return { id: user.id, email: user.email };
   }

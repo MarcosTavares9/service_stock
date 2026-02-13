@@ -1,6 +1,9 @@
 export class ValidationUtil {
   static async checkUnique<T>(
-    repository: { findByEmail?: (email: string) => Promise<T | null>; findByName?: (name: string) => Promise<T | null> },
+    repository: {
+      findByEmail?: (email: string) => Promise<T | null>;
+      findByName?: (name: string) => Promise<T | null>;
+    },
     value: string,
     field: 'email' | 'name',
     excludeId?: string | number,
@@ -28,11 +31,3 @@ export class ValidationUtil {
     return undefined;
   }
 }
-
-
-
-
-
-
-
-

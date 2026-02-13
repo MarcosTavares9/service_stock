@@ -13,11 +13,11 @@ export class UpdateLocationDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ 
-    example: EntityStatus.ACTIVE, 
+  @ApiProperty({
+    example: EntityStatus.ACTIVE,
     required: false,
     enum: EntityStatus,
-    description: 'Status da localização: true (ativo), false (inativo), blocked (excluído)'
+    description: 'Status da localização: true (ativo), false (inativo), blocked (excluído)',
   })
   @IsOptional()
   @IsEnum(EntityStatus)

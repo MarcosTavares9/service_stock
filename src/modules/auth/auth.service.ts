@@ -6,7 +6,11 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { User } from './user.entity';
-import { UnauthorizedException, ConflictException, BusinessException } from '../../shared/core/business.exception';
+import {
+  UnauthorizedException,
+  ConflictException,
+  BusinessException,
+} from '../../shared/core/business.exception';
 import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
 @Injectable()
@@ -32,6 +36,11 @@ export class AuthService {
     if (!isValidPassword) {
       throw new UnauthorizedException('Email ou senha inválidos');
     }
+
+    // TODO: Reativar validação de status quando necessário
+    // if (user.status !== EntityStatus.ACTIVE) {
+    //   throw new UnauthorizedException('Conta não está ativa. Verifique seu email para confirmar o cadastro.');
+    // }
 
     const token = this.tokenService.generateToken({
       id: user.id,
@@ -70,11 +79,7 @@ export class AuthService {
 
     await this.userRepository.create(user);
 
-    await this.emailService.sendConfirmationEmail(
-      user.email,
-      confirmationToken,
-      user.name,
-    );
+    await this.emailService.sendConfirmationEmail(user.email, confirmationToken, user.name);
 
     return {
       message: 'Usuário criado com sucesso. Verifique seu email para confirmar a conta.',

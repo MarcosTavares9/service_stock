@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional } from 'class-validator';
+import { IsString, IsEmail, IsOptional, ValidateIf } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateProfileDto {
@@ -29,4 +29,14 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   cargo?: string;
+
+  @ApiProperty({
+    example: 'https://firebasestorage.googleapis.com/...',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @ValidateIf((_object, value) => value !== null)
+  @IsString()
+  profilePicture?: string | null;
 }

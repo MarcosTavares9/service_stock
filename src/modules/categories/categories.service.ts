@@ -4,7 +4,11 @@ import { IProductRepository } from '../products/product.repository';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './category.entity';
-import { NotFoundException, ConflictException, BusinessException } from '../../shared/core/business.exception';
+import {
+  NotFoundException,
+  ConflictException,
+  BusinessException,
+} from '../../shared/core/business.exception';
 
 @Injectable()
 export class CategoriesService {

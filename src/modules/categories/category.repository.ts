@@ -25,9 +25,9 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   async findAll(): Promise<Category[]> {
-    return this.repository.find({ 
+    return this.repository.find({
       where: { status: EntityStatus.ACTIVE },
-      order: { name: 'ASC' } 
+      order: { name: 'ASC' },
     });
   }
 

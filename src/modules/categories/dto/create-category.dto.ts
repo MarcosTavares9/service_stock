@@ -8,10 +8,34 @@ export class CreateCategoryDto {
 
   @ApiProperty({
     example: 'laptop',
-    enum: ['laptop', 'mouse', 'headphones', 'hdd', 'memory', 'chair', 'print', 'spray', 'utensils', 'tshirt', 'box'],
+    enum: [
+      'laptop',
+      'mouse',
+      'headphones',
+      'hdd',
+      'memory',
+      'chair',
+      'print',
+      'spray',
+      'utensils',
+      'tshirt',
+      'box',
+    ],
   })
   @IsEnum(
-    ['laptop', 'mouse', 'headphones', 'hdd', 'memory', 'chair', 'print', 'spray', 'utensils', 'tshirt', 'box'],
+    [
+      'laptop',
+      'mouse',
+      'headphones',
+      'hdd',
+      'memory',
+      'chair',
+      'print',
+      'spray',
+      'utensils',
+      'tshirt',
+      'box',
+    ],
     { message: 'IconName inválido' },
   )
   icon_name: string;

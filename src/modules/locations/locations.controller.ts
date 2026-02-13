@@ -47,7 +47,10 @@ export class LocationsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Deletar localização' })
   @ApiResponse({ status: 200, description: 'Localização deletada com sucesso' })
-  @ApiResponse({ status: 400, description: 'Não é possível deletar localização com produtos associados' })
+  @ApiResponse({
+    status: 400,
+    description: 'Não é possível deletar localização com produtos associados',
+  })
   async delete(@Param('id') id: string) {
     return this.locationsService.delete(id);
   }

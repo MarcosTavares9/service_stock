@@ -7,16 +7,19 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
   constructor(private configService: ConfigService) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    const databaseUrl = this.configService.get<string>('DATABASE_URL') || 
-                        this.configService.get<string>('DB_URL');
-    
+    const databaseUrl =
+      this.configService.get<string>('DATABASE_URL') || this.configService.get<string>('DB_URL');
+
+    const shouldSynchronize = this.configService.get<string>('DB_SYNCHRONIZE') === 'true';
+    const isDevEnvironment = this.configService.get<string>('NODE_ENV') === 'development';
+
     if (databaseUrl) {
       return {
         type: 'postgres',
         url: databaseUrl,
         autoLoadEntities: true,
-        synchronize: false,
-        logging: this.configService.get<string>('NODE_ENV') === 'development',
+        synchronize: shouldSynchronize,
+        logging: isDevEnvironment,
         extra: {
           ssl: {
             rejectUnauthorized: false,
@@ -34,8 +37,8 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       password: this.configService.get<string>('DB_PASSWORD', 'root'),
       database: this.configService.get<string>('DB_DATABASE', 'Stock_Control'),
       autoLoadEntities: true,
-      synchronize: false,
-      logging: this.configService.get<string>('NODE_ENV') === 'development',
+      synchronize: shouldSynchronize,
+      logging: isDevEnvironment,
     };
   }
 }

@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiController } from '../../shared/core/api-controller.decorator';
@@ -17,9 +12,9 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('export/csv')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Exportar relatório de histórico em formato CSV',
-    description: 'Gera e retorna um arquivo CSV contendo o histórico de movimentações de estoque.'
+    description: 'Gera e retorna um arquivo CSV contendo o histórico de movimentações de estoque.',
   })
   @ApiResponse({ status: 200, description: 'Arquivo CSV gerado com sucesso' })
   async exportCsv(
@@ -50,9 +45,9 @@ export class ReportsController {
   }
 
   @Get('export/excel')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Exportar relatório de histórico em formato Excel',
-    description: 'Gera e retorna um arquivo Excel (.xlsx) contendo o histórico.'
+    description: 'Gera e retorna um arquivo Excel (.xlsx) contendo o histórico.',
   })
   @ApiResponse({ status: 200, description: 'Arquivo Excel gerado com sucesso' })
   async exportExcel(
@@ -82,9 +77,9 @@ export class ReportsController {
   }
 
   @Get('export/pdf')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Exportar relatório de histórico em formato PDF',
-    description: 'Gera e retorna um arquivo PDF contendo o histórico.'
+    description: 'Gera e retorna um arquivo PDF contendo o histórico.',
   })
   @ApiResponse({ status: 200, description: 'Arquivo PDF gerado com sucesso' })
   async exportPdf(

@@ -14,12 +14,7 @@ export interface PaginationResult<T> {
 }
 
 export class PaginationUtil {
-  static create<T>(
-    data: T[],
-    total: number,
-    page: number,
-    limit: number,
-  ): PaginationResult<T> {
+  static create<T>(data: T[], total: number, page: number, limit: number): PaginationResult<T> {
     return {
       data,
       pagination: {
@@ -31,10 +26,7 @@ export class PaginationUtil {
     };
   }
 
-  static normalize(params: {
-    page?: number;
-    limit?: number;
-  }): PaginationParams {
+  static normalize(params: { page?: number; limit?: number }): PaginationParams {
     const page = Math.max(1, params.page || 1);
     const limit = Math.max(1, Math.min(100, params.limit || 10));
 
@@ -45,11 +37,3 @@ export class PaginationUtil {
     return (page - 1) * limit;
   }
 }
-
-
-
-
-
-
-
-

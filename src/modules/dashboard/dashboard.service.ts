@@ -21,14 +21,12 @@ export class DashboardService {
       limit: 10000,
     });
 
-    products.forEach(product => {
+    products.forEach((product) => {
       product.updateStockStatus();
     });
 
     const totalProducts = total;
-    const lowStockProducts = products.filter(
-      (p) => p.stock_status === ProductStatus.LOW,
-    ).length;
+    const lowStockProducts = products.filter((p) => p.stock_status === ProductStatus.LOW).length;
     const emptyStockProducts = products.filter(
       (p) => p.stock_status === ProductStatus.EMPTY,
     ).length;
@@ -52,11 +50,11 @@ export class DashboardService {
 
   async getLowStockProducts(limit?: number): Promise<Product[]> {
     const products = await this.productRepository.findLowStock(limit);
-    
-    products.forEach(product => {
+
+    products.forEach((product) => {
       product.updateStockStatus();
     });
-    
+
     return products;
   }
 }

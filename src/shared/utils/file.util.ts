@@ -21,11 +21,3 @@ export class FileUtil {
     return `${timestamp}-${random}${ext}`;
   }
 }
-
-
-
-
-
-
-
-

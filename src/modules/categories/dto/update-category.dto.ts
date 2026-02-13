@@ -9,6 +9,18 @@ export class UpdateCategoryDto {
 
   @ApiProperty({ example: 'laptop', required: false })
   @IsOptional()
-  @IsEnum(['laptop', 'mouse', 'headphones', 'hdd', 'memory', 'chair', 'print', 'spray', 'utensils', 'tshirt', 'box'])
+  @IsEnum([
+    'laptop',
+    'mouse',
+    'headphones',
+    'hdd',
+    'memory',
+    'chair',
+    'print',
+    'spray',
+    'utensils',
+    'tshirt',
+    'box',
+  ])
   icon_name?: string;
 }

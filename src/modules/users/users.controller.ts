@@ -27,9 +27,9 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Listar todos os usuários',
-    description: 'Retorna uma lista paginada de todos os usuários cadastrados no sistema.'
+    description: 'Retorna uma lista paginada de todos os usuários cadastrados no sistema.',
   })
   @ApiResponse({ status: 200, description: 'Lista de usuários retornada com sucesso' })
   async list(
@@ -41,9 +41,9 @@ export class UsersController {
   }
 
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Criar novo usuário',
-    description: 'Cria um novo usuário no sistema.'
+    description: 'Cria um novo usuário no sistema.',
   })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos fornecidos ou email já cadastrado' })
@@ -52,9 +52,9 @@ export class UsersController {
   }
 
   @Put(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Atualizar usuário',
-    description: 'Atualiza as informações de um usuário existente.'
+    description: 'Atualiza as informações de um usuário existente.',
   })
   @ApiResponse({ status: 200, description: 'Usuário atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
@@ -63,9 +63,9 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Deletar usuário',
-    description: 'Remove um usuário do sistema.'
+    description: 'Remove um usuário do sistema.',
   })
   @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
@@ -74,9 +74,9 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Buscar usuário por ID',
-    description: 'Retorna os detalhes completos de um usuário.'
+    description: 'Retorna os detalhes completos de um usuário.',
   })
   @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
@@ -85,9 +85,9 @@ export class UsersController {
   }
 
   @Get(':id/profile')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Buscar perfil completo do usuário',
-    description: 'Retorna todas as informações do perfil de um usuário.'
+    description: 'Retorna todas as informações do perfil de um usuário.',
   })
   @ApiResponse({ status: 200, description: 'Perfil encontrado com sucesso' })
   @ApiResponse({ status: 404, description: 'Perfil não encontrado' })
@@ -96,9 +96,9 @@ export class UsersController {
   }
 
   @Put(':id/profile')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Atualizar perfil do usuário',
-    description: 'Atualiza as informações do perfil de um usuário.'
+    description: 'Atualiza as informações do perfil de um usuário.',
   })
   @ApiResponse({ status: 200, description: 'Perfil atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Perfil não encontrado' })
@@ -108,25 +108,22 @@ export class UsersController {
 
   @Post(':id/profile/picture')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Upload foto de perfil',
-    description: 'Faz upload de uma foto de perfil.'
+    description: 'Faz upload de uma foto de perfil.',
   })
   @ApiResponse({ status: 200, description: 'Foto enviada com sucesso' })
   @ApiResponse({ status: 400, description: 'Arquivo inválido ou formato não suportado' })
-  async uploadProfilePicture(
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async uploadProfilePicture(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     FileUtil.validateImage(file);
     const photoUrl = `${AppConfig.getUsersUploadPath()}/${FileUtil.generateFileName(file.originalname)}`;
     return { fotoPerfil: photoUrl };
   }
 
   @Delete(':id/profile/picture')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Remover foto de perfil',
-    description: 'Remove a foto de perfil de um usuário.'
+    description: 'Remove a foto de perfil de um usuário.',
   })
   @ApiResponse({ status: 200, description: 'Foto removida com sucesso' })
   async deleteProfilePicture(@Param('id') id: string) {
