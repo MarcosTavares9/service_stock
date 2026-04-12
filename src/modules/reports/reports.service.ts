@@ -1,6 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IHistoryRepository } from '../history/history.repository';
-import { createObjectCsvWriter } from 'csv-writer';
 import * as ExcelJS from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 
@@ -9,6 +8,7 @@ interface ReportParams {
   product_id?: string;
   dataInicio?: string;
   dataFim?: string;
+  user_id?: string;
 }
 
 @Injectable()
@@ -18,43 +18,42 @@ export class ReportsService {
     private readonly historyRepository: IHistoryRepository,
   ) {}
 
-  async exportCsv(params: ReportParams): Promise<string> {
+  async exportCsv(params: ReportParams): Promise<Buffer> {
     const { history } = await this.historyRepository.findAll({
       page: 1,
       limit: 10000,
       ...params,
     });
 
-    const csvWriter = createObjectCsvWriter({
-      path: 'temp-report.csv',
-      header: [
-        { id: 'uuid', title: 'UUID' },
-        { id: 'type', title: 'Tipo' },
-        { id: 'product_id', title: 'ID Produto' },
-        { id: 'user_id', title: 'ID Usuário' },
-        { id: 'quantity_changed', title: 'Quantidade Alterada' },
-        { id: 'previous_quantity', title: 'Quantidade Anterior' },
-        { id: 'new_quantity', title: 'Quantidade Nova' },
-        { id: 'created_at', title: 'Data' },
-        { id: 'observation', title: 'Observação' },
-      ],
-    });
+    const escapeCsvCell = (value: unknown): string => {
+      const str = String(value ?? '');
+      return `"${str.replace(/"/g, '""')}"`;
+    };
 
-    await csvWriter.writeRecords(
-      history.map((h) => ({
-        uuid: h.uuid,
-        type: h.type,
-        product_id: h.product_id || '',
-        user_id: h.user_id || '',
-        quantity_changed: h.quantity_changed,
-        previous_quantity: h.previous_quantity || '',
-        new_quantity: h.new_quantity || '',
-        created_at: h.created_at.toISOString(),
-        observation: h.observation || '',
-      })),
-    );
+    const headers = [
+      'UUID', 'Tipo', 'ID Produto', 'ID Usuário',
+      'Quantidade Alterada', 'Quantidade Anterior', 'Quantidade Nova',
+      'Data', 'Observação',
+    ];
 
-    return 'temp-report.csv';
+    const rows = history.map((h) => [
+      h.uuid,
+      h.type,
+      h.product_id ?? '',
+      h.user_id ?? '',
+      h.quantity_changed,
+      h.previous_quantity ?? '',
+      h.new_quantity ?? '',
+      h.created_at.toISOString(),
+      h.observation ?? '',
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map(escapeCsvCell).join(','))
+      .join('\r\n');
+
+    // BOM prefix ensures Excel opens UTF-8 correctly
+    return Buffer.from('\uFEFF' + csv, 'utf8');
   }
 
   async exportExcel(params: ReportParams): Promise<ExcelJS.Buffer> {

@@ -22,6 +22,10 @@ export class AppConfig {
     return configService.get<string>('APP_URL', 'http://localhost:3000');
   }
 
+  static getFrontendUrl(configService: ConfigService): string {
+    return configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+  }
+
   static getJwtSecret(configService: ConfigService): string {
     const secret = configService.get<string>('JWT_SECRET');
     if (!secret) {
@@ -31,7 +35,7 @@ export class AppConfig {
   }
 
   static getMaxListLimit(): number {
-    return Number.MAX_SAFE_INTEGER;
+    return 1000;
   }
 
   static getUploadPath(): string {

@@ -4,14 +4,23 @@ import { Repository } from 'typeorm';
 import { Product, ProductStatus } from './product.entity';
 import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
+export interface StockStats {
+  total: number;
+  totalCategories: number;
+  totalLocations: number;
+  lowCount: number;
+  emptyCount: number;
+}
+
 export interface IProductRepository {
-  findById(uuid: string): Promise<Product | null>;
+  findById(uuid: string, userId?: string): Promise<Product | null>;
   findAll(params: {
     page: number;
     limit: number;
     search?: string;
     category_id?: string;
     status?: string;
+    userId?: string;
   }): Promise<{ products: Product[]; total: number }>;
   create(product: Product): Promise<Product>;
   update(product: Product): Promise<Product>;
@@ -19,7 +28,8 @@ export interface IProductRepository {
   createBulk(products: Product[]): Promise<{ created: number; failed: number; data: Product[] }>;
   findByCategory(categoryId: string): Promise<Product[]>;
   findByLocation(locationId: string): Promise<Product[]>;
-  findLowStock(limit?: number): Promise<Product[]>;
+  findLowStock(limit?: number, userId?: string): Promise<Product[]>;
+  getStockStats(): Promise<StockStats>;
 }
 
 @Injectable()
@@ -29,7 +39,7 @@ export class ProductRepository implements IProductRepository {
     private readonly repository: Repository<Product>,
   ) {}
 
-  async findById(uuid: string): Promise<Product | null> {
+  async findById(uuid: string, _userId?: string): Promise<Product | null> {
     return this.repository.findOne({ where: { uuid } });
   }
 
@@ -39,8 +49,9 @@ export class ProductRepository implements IProductRepository {
     search?: string;
     category_id?: string;
     status?: string;
+    userId?: string;
   }): Promise<{ products: Product[]; total: number }> {
-    const { page, limit, search, category_id, status } = params;
+    const { page, limit, search, category_id, status, userId } = params;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.repository.createQueryBuilder('product');
@@ -130,7 +141,29 @@ export class ProductRepository implements IProductRepository {
     return this.repository.find({ where: { location_id: locationId } });
   }
 
-  async findLowStock(limit?: number): Promise<Product[]> {
+  async getStockStats(): Promise<StockStats> {
+    const result = await this.repository
+      .createQueryBuilder('product')
+      .select([
+        'COUNT(*) AS total',
+        'COUNT(DISTINCT product.category_id) AS "totalCategories"',
+        'COUNT(DISTINCT product.location_id) AS "totalLocations"',
+        'COUNT(CASE WHEN product.quantity > 0 AND product.quantity < product.minimum_stock THEN 1 END) AS "lowCount"',
+        'COUNT(CASE WHEN product.quantity <= 0 THEN 1 END) AS "emptyCount"',
+      ])
+      .where('product.status != :blocked', { blocked: EntityStatus.BLOCKED })
+      .getRawOne();
+
+    return {
+      total: Number(result.total),
+      totalCategories: Number(result.totalCategories),
+      totalLocations: Number(result.totalLocations),
+      lowCount: Number(result.lowCount),
+      emptyCount: Number(result.emptyCount),
+    };
+  }
+
+  async findLowStock(limit?: number, _userId?: string): Promise<Product[]> {
     const queryBuilder = this.repository
       .createQueryBuilder('product')
       .select([
@@ -145,6 +178,7 @@ export class ProductRepository implements IProductRepository {
         'product.created_at',
         'product.updated_at',
       ])
+      .where('product.status != :blocked', { blocked: EntityStatus.BLOCKED })
       .orderBy('product.quantity', 'ASC');
 
     if (limit) {

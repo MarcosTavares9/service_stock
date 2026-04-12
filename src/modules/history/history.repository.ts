@@ -97,61 +97,51 @@ export class HistoryRepository implements IHistoryRepository {
       .orderBy('history.created_at', 'DESC')
       .getManyAndCount();
 
-    const historyWithDetails = await Promise.all(
-      history.map(async (h) => {
-        const raw = await this.repository
-          .createQueryBuilder('history')
-          .select([
-            'history.uuid as history_uuid',
-            'history.type as history_type',
-            'history.product_id as history_product_id',
-            'history.user_id as history_user_id',
-            'history.categories_id as history_categories_id',
-            'history.locations_id as history_locations_id',
-            'history.quantity_changed as history_quantity_changed',
-            'history.previous_quantity as history_previous_quantity',
-            'history.new_quantity as history_new_quantity',
-            'history.observation as history_observation',
-            'history.created_at as history_created_at',
-            'user.id as user_id',
-            'user.name as user_name',
-            'user.email as user_email',
-            'product.uuid as product_uuid',
-            'product.name as product_name',
-          ])
-          .leftJoin('users', 'user', 'user.id = history.user_id')
-          .leftJoin('products', 'product', 'product.uuid = history.product_id')
-          .where('history.uuid = :uuid', { uuid: h.uuid })
-          .getRawOne();
+    if (history.length === 0) {
+      return { history: [], total };
+    }
 
-        return {
-          uuid: h.uuid,
-          type: h.type,
-          product_id: h.product_id,
-          user_id: h.user_id,
-          categories_id: h.categories_id,
-          locations_id: h.locations_id,
-          quantity_changed: h.quantity_changed,
-          previous_quantity: h.previous_quantity,
-          new_quantity: h.new_quantity,
-          observation: h.observation,
-          created_at: h.created_at,
-          user: raw?.user_id
-            ? {
-                id: raw.user_id,
-                name: raw.user_name,
-                email: raw.user_email,
-              }
-            : null,
-          product: raw?.product_uuid
-            ? {
-                uuid: raw.product_uuid,
-                name: raw.product_name,
-              }
-            : null,
-        };
-      }),
-    );
+    const uuids = history.map((h) => h.uuid);
+
+    const details = await this.repository
+      .createQueryBuilder('history')
+      .select([
+        'history.uuid as history_uuid',
+        'user.id as user_id',
+        'user.name as user_name',
+        'user.email as user_email',
+        'product.uuid as product_uuid',
+        'product.name as product_name',
+      ])
+      .leftJoin('users', 'user', 'user.id = history.user_id')
+      .leftJoin('products', 'product', 'product.uuid = history.product_id')
+      .where('history.uuid IN (:...uuids)', { uuids })
+      .getRawMany();
+
+    const detailMap = new Map(details.map((d) => [d.history_uuid, d]));
+
+    const historyWithDetails = history.map((h) => {
+      const detail = detailMap.get(h.uuid);
+      return {
+        uuid: h.uuid,
+        type: h.type,
+        product_id: h.product_id,
+        user_id: h.user_id,
+        categories_id: h.categories_id,
+        locations_id: h.locations_id,
+        quantity_changed: h.quantity_changed,
+        previous_quantity: h.previous_quantity,
+        new_quantity: h.new_quantity,
+        observation: h.observation,
+        created_at: h.created_at,
+        user: detail?.user_id
+          ? { id: detail.user_id, name: detail.user_name, email: detail.user_email }
+          : null,
+        product: detail?.product_uuid
+          ? { uuid: detail.product_uuid, name: detail.product_name }
+          : null,
+      };
+    });
 
     return { history: historyWithDetails as any, total };
   }

@@ -37,14 +37,14 @@ export class AuthService {
       throw new UnauthorizedException('Email ou senha inválidos');
     }
 
-    // TODO: Reativar validação de status quando necessário
-    // if (user.status !== EntityStatus.ACTIVE) {
-    //   throw new UnauthorizedException('Conta não está ativa. Verifique seu email para confirmar o cadastro.');
-    // }
+    if (user.status !== EntityStatus.ACTIVE || !user.email_confirmed) {
+      throw new UnauthorizedException('Conta inativa ou não confirmada');
+    }
 
     const token = this.tokenService.generateToken({
       id: user.id,
       email: user.email,
+      role: user.role,
     });
 
     return {
@@ -55,6 +55,7 @@ export class AuthService {
         lastName: user.last_name,
         email: user.email,
         photo: user.profile_picture,
+        role: user.role,
       },
     };
   }
@@ -66,28 +67,31 @@ export class AuthService {
       throw new ConflictException('Email já cadastrado');
     }
 
-    const confirmationToken = this.tokenService.generateConfirmationToken();
-
     const user = new User();
     user.name = dto.firstName;
     user.last_name = dto.lastName;
     user.email = dto.email;
     user.phone = dto.phone;
     user.password = dto.password;
-    user.status = EntityStatus.INACTIVE;
-    user.email_confirmed = false;
+    user.status = EntityStatus.ACTIVE;
+    user.email_confirmed = true;
 
     await this.userRepository.create(user);
 
-    await this.emailService.sendConfirmationEmail(user.email, confirmationToken, user.name);
-
     return {
-      message: 'Usuário criado com sucesso. Verifique seu email para confirmar a conta.',
+      message: 'Usuário criado com sucesso.',
     };
   }
 
   async confirmRegistration(token: string): Promise<{ message: string }> {
-    const user = await this.userRepository.findByConfirmationToken(token);
+    let payload: { email: string };
+    try {
+      payload = this.tokenService.verifyConfirmationToken(token);
+    } catch {
+      throw new BusinessException('Token inválido ou expirado');
+    }
+
+    const user = await this.userRepository.findByEmail(payload.email);
 
     if (!user) {
       throw new BusinessException('Token inválido ou expirado');

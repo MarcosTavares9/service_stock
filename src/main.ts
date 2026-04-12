@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './shared/core/http-exception.filter';
 import { AppConfig } from './shared/config/app.config';
+import { TransformResponseInterceptor } from './shared/core/transform-response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,7 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new TransformResponseInterceptor());
 
   app.enableCors({
     origin: AppConfig.getFrontendUrls(configService),
@@ -50,7 +52,7 @@ async function bootstrap() {
 
   const port = AppConfig.getPort(configService);
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Servidor rodando na porta ${port}`);
+  Logger.log(`Servidor rodando na porta ${port}`, 'Bootstrap');
 }
 
 bootstrap();
