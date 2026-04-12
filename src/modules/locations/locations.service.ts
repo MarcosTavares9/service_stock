@@ -20,21 +20,21 @@ export class LocationsService {
     private readonly productRepository: IProductRepository,
   ) {}
 
-  async list(active?: boolean): Promise<{ data: Location[] }> {
-    const locations = await this.locationRepository.findAll({ active });
+  async list(userId: string, active?: boolean): Promise<{ data: Location[] }> {
+    const locations = await this.locationRepository.findAll({ active, userId });
     return { data: locations };
   }
 
-  async getById(id: string) {
-    const location = await this.locationRepository.findById(id);
+  async getById(id: string, userId: string) {
+    const location = await this.locationRepository.findById(id, userId);
     if (!location) {
       throw new NotFoundException('Localização');
     }
     return location;
   }
 
-  async create(dto: CreateLocationDto): Promise<Location> {
-    const existingLocation = await this.locationRepository.findByName(dto.name);
+  async create(dto: CreateLocationDto, userId: string): Promise<Location> {
+    const existingLocation = await this.locationRepository.findByName(dto.name, userId);
     if (existingLocation) {
       throw new ConflictException('Nome de localização já existe');
     }
@@ -43,18 +43,19 @@ export class LocationsService {
     location.name = dto.name;
     location.description = dto.description;
     location.status = EntityStatus.ACTIVE;
+    location.user_id = userId;
 
     return this.locationRepository.create(location);
   }
 
-  async update(id: string, dto: UpdateLocationDto) {
-    const location = await this.locationRepository.findById(id);
+  async update(id: string, dto: UpdateLocationDto, userId: string) {
+    const location = await this.locationRepository.findById(id, userId);
     if (!location) {
       throw new NotFoundException('Localização');
     }
 
     if (dto.name && dto.name !== location.name) {
-      const existingLocation = await this.locationRepository.findByName(dto.name);
+      const existingLocation = await this.locationRepository.findByName(dto.name, userId);
       if (existingLocation) {
         throw new ConflictException('Nome de localização já existe');
       }
@@ -72,8 +73,8 @@ export class LocationsService {
     return this.locationRepository.update(location);
   }
 
-  async delete(id: string) {
-    const location = await this.locationRepository.findById(id);
+  async delete(id: string, userId: string) {
+    const location = await this.locationRepository.findById(id, userId);
     if (!location) {
       throw new NotFoundException('Localização');
     }

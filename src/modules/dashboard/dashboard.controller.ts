@@ -1,7 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiController } from '../../shared/core/api-controller.decorator';
+import { Roles } from '../../shared/core/roles.decorator';
+import { ALL_ROLES } from '../auth/user.entity';
 import { DashboardService } from './dashboard.service';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { EXAMPLE_UUID, EXAMPLE_UUID_2, EXAMPLE_UUID_3 } from '../../shared/utils/example-values';
 
 @ApiController('Dashboard')
@@ -10,6 +13,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
+  @Roles(...ALL_ROLES)
   @ApiOperation({
     summary: 'Obter estatísticas gerais do dashboard',
     description: 'Retorna estatísticas consolidadas do sistema.',
@@ -25,11 +29,12 @@ export class DashboardController {
       emptyStockProducts: 2,
     },
   })
-  async getStats() {
-    return this.dashboardService.getStats();
+  async getStats(@CurrentUser() user: { id: string; email: string }) {
+    return this.dashboardService.getStats(user.id);
   }
 
   @Get('low-stock')
+  @Roles(...ALL_ROLES)
   @ApiOperation({
     summary: 'Listar produtos com estoque baixo',
     description: 'Retorna uma lista de produtos que estão com estoque abaixo do mínimo ou vazio.',
@@ -53,7 +58,10 @@ export class DashboardController {
       },
     ],
   })
-  async getLowStock(@Query('limit') limit?: number) {
-    return this.dashboardService.getLowStockProducts(limit);
+  async getLowStock(
+    @CurrentUser() user: { id: string; email: string },
+    @Query('limit') limit?: number,
+  ) {
+    return this.dashboardService.getLowStockProducts(user.id, limit);
   }
 }

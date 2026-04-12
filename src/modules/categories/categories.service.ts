@@ -19,21 +19,21 @@ export class CategoriesService {
     private readonly productRepository: IProductRepository,
   ) {}
 
-  async list(): Promise<{ data: Category[] }> {
-    const categories = await this.categoryRepository.findAll();
+  async list(userId: string): Promise<{ data: Category[] }> {
+    const categories = await this.categoryRepository.findAll(userId);
     return { data: categories };
   }
 
-  async getById(uuid: string) {
-    const category = await this.categoryRepository.findById(uuid);
+  async getById(uuid: string, userId: string) {
+    const category = await this.categoryRepository.findById(uuid, userId);
     if (!category) {
       throw new NotFoundException('Categoria');
     }
     return category;
   }
 
-  async create(dto: CreateCategoryDto): Promise<Category> {
-    const existingCategory = await this.categoryRepository.findByName(dto.name);
+  async create(dto: CreateCategoryDto, userId: string): Promise<Category> {
+    const existingCategory = await this.categoryRepository.findByName(dto.name, userId);
     if (existingCategory) {
       throw new ConflictException('Nome de categoria já existe');
     }
@@ -41,18 +41,19 @@ export class CategoriesService {
     const category = new Category();
     category.name = dto.name;
     category.icon_name = dto.icon_name;
+    category.user_id = userId;
 
     return this.categoryRepository.create(category);
   }
 
-  async update(uuid: string, dto: UpdateCategoryDto) {
-    const category = await this.categoryRepository.findById(uuid);
+  async update(uuid: string, dto: UpdateCategoryDto, userId: string) {
+    const category = await this.categoryRepository.findById(uuid, userId);
     if (!category) {
       throw new NotFoundException('Categoria');
     }
 
     if (dto.name && dto.name !== category.name) {
-      const existingCategory = await this.categoryRepository.findByName(dto.name);
+      const existingCategory = await this.categoryRepository.findByName(dto.name, userId);
       if (existingCategory) {
         throw new ConflictException('Nome de categoria já existe');
       }
@@ -66,8 +67,8 @@ export class CategoriesService {
     return this.categoryRepository.update(category);
   }
 
-  async delete(uuid: string) {
-    const category = await this.categoryRepository.findById(uuid);
+  async delete(uuid: string, userId: string) {
+    const category = await this.categoryRepository.findById(uuid, userId);
     if (!category) {
       throw new NotFoundException('Categoria');
     }

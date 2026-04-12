@@ -15,7 +15,6 @@ export interface IUserRepository {
     limit: number;
     search?: string;
   }): Promise<{ users: User[]; total: number }>;
-  findByConfirmationToken(token: string): Promise<User | null>;
 }
 
 @Injectable()
@@ -65,9 +64,5 @@ export class UserRepository implements IUserRepository {
     const [users, total] = await queryBuilder.skip(skip).take(limit).getManyAndCount();
 
     return { users, total };
-  }
-
-  async findByConfirmationToken(token: string): Promise<User | null> {
-    return null;
   }
 }

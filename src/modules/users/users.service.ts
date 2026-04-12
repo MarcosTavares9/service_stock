@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IUserRepository } from '../auth/user.repository';
-import { User } from '../auth/user.entity';
+import { User, UserRole } from '../auth/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -31,14 +31,21 @@ export class UsersService {
       search: params.search,
     });
 
-    const usersWithoutPassword = users.map(
-      ({ password, hashPassword, validatePassword, ...user }) => ({
-        ...user,
-        password: undefined,
-      }),
-    );
+    const usersFormatted = users.map((user) => ({
+      id: user.id,
+      firstName: user.name,
+      lastName: user.last_name,
+      email: user.email,
+      phone: user.phone,
+      profilePicture: user.profile_picture,
+      role: user.role,
+      status: user.status,
+      emailConfirmed: user.email_confirmed,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    }));
 
-    return PaginationUtil.create(usersWithoutPassword, total, page, limit);
+    return PaginationUtil.create(usersFormatted, total, page, limit);
   }
 
   async create(dto: CreateUserDto) {
@@ -53,6 +60,7 @@ export class UsersService {
     user.last_name = dto.lastName;
     user.email = dto.email;
     user.password = dto.password;
+    user.role = dto.role ?? UserRole.OPERADOR;
     user.status = EntityStatus.ACTIVE;
     user.email_confirmed = true;
 
@@ -118,7 +126,9 @@ export class UsersService {
       throw new NotFoundException('Usuário');
     }
 
-    await this.userRepository.delete(id);
+    // Soft delete via status = BLOCKED (nunca DELETE físico)
+    user.status = EntityStatus.BLOCKED;
+    await this.userRepository.update(user);
 
     return { message: 'Usuário deletado com sucesso' };
   }
@@ -159,7 +169,7 @@ export class UsersService {
       user.email = dto.email;
     }
 
-    user.name = dto.nome;
+    if (dto.nome !== undefined) user.name = dto.nome;
     if (dto.sobrenome !== undefined) user.last_name = dto.sobrenome;
     if (dto.telefone !== undefined) user.phone = dto.telefone;
     if (dto.profilePicture !== undefined) user.profile_picture = dto.profilePicture;

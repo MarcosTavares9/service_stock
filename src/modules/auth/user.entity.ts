@@ -16,6 +16,10 @@ export enum UserRole {
   OPERADOR = 'Operador',
 }
 
+export const ADMIN_ROLES = [UserRole.ADMINISTRADOR];
+export const MANAGER_ROLES = [UserRole.ADMINISTRADOR, UserRole.GERENTE];
+export const ALL_ROLES = [UserRole.ADMINISTRADOR, UserRole.GERENTE, UserRole.OPERADOR];
+
 export enum UserStatus {
   ATIVO = 'ativo',
   INATIVO = 'inativo',
@@ -43,6 +47,13 @@ export class User {
 
   @Column({ nullable: true })
   profile_picture?: string;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+    default: UserRole.OPERADOR,
+  })
+  role: UserRole;
 
   @Column({ default: EntityStatus.INACTIVE })
   status: string;

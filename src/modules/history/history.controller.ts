@@ -1,7 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiController } from '../../shared/core/api-controller.decorator';
+import { Roles } from '../../shared/core/roles.decorator';
+import { ALL_ROLES } from '../auth/user.entity';
 import { HistoryService } from './history.service';
+import { ListHistoryDto } from './dto/list-history.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
 import {
   EXAMPLE_UUID,
   EXAMPLE_UUID_2,
@@ -17,6 +21,7 @@ export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}
 
   @Get()
+  @Roles(...ALL_ROLES)
   @ApiOperation({
     summary: 'Listar todo o histórico de movimentações',
     description:
@@ -52,11 +57,7 @@ export class HistoryController {
       ],
     },
   })
-  async list(
-    @Query('type') type?: string,
-    @Query('product_id') product_id?: string,
-    @Query('user_id') user_id?: string,
-  ) {
-    return this.historyService.list();
+  async list(@Query() filters: ListHistoryDto, @CurrentUser() user: { id: string; email: string }) {
+    return this.historyService.list(filters, user.id);
   }
 }

@@ -28,10 +28,11 @@ export class ProductsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async list(): Promise<{ data: Product[] }> {
+  async list(userId: string): Promise<{ data: Product[] }> {
     const { products } = await this.productRepository.findAll({
       page: 1,
       limit: AppConfig.getMaxListLimit(),
+      userId,
     });
 
     const serializedProducts = products.map((product) => {
@@ -55,8 +56,8 @@ export class ProductsService {
     return { data: serializedProducts };
   }
 
-  async getById(uuid: string) {
-    const product = await this.productRepository.findById(uuid);
+  async getById(uuid: string, userId: string) {
+    const product = await this.productRepository.findById(uuid, userId);
 
     if (!product) {
       throw new NotFoundException('Produto');
@@ -93,8 +94,8 @@ export class ProductsService {
     return createdProduct;
   }
 
-  async update(uuid: string, dto: UpdateProductDto, userId?: string) {
-    const product = await this.productRepository.findById(uuid);
+  async update(uuid: string, dto: UpdateProductDto, userId: string) {
+    const product = await this.productRepository.findById(uuid, userId);
 
     if (!product) {
       throw new NotFoundException('Produto');
@@ -129,10 +130,11 @@ export class ProductsService {
       if (valoresAnteriores.category_id) {
         const categoriaAnterior = await this.categoryRepository.findById(
           valoresAnteriores.category_id,
+          userId,
         );
         categoriaAnteriorNome = categoriaAnterior?.name || 'Desconhecida';
       }
-      const categoriaNova = await this.categoryRepository.findById(dto.category_id);
+      const categoriaNova = await this.categoryRepository.findById(dto.category_id, userId);
       categoriaNovaNome = categoriaNova?.name || 'Desconhecida';
     }
 
@@ -140,10 +142,11 @@ export class ProductsService {
       if (valoresAnteriores.location_id) {
         const localizacaoAnterior = await this.locationRepository.findById(
           valoresAnteriores.location_id,
+          userId,
         );
         localizacaoAnteriorNome = localizacaoAnterior?.name || 'Desconhecida';
       }
-      const localizacaoNova = await this.locationRepository.findById(dto.location_id);
+      const localizacaoNova = await this.locationRepository.findById(dto.location_id, userId);
       localizacaoNovaNome = localizacaoNova?.name || 'Desconhecida';
     }
 
@@ -198,13 +201,12 @@ export class ProductsService {
   }
 
   async delete(uuid: string, userId?: string) {
-    const product = await this.productRepository.findById(uuid);
+    const product = await this.productRepository.findById(uuid, userId);
 
     if (!product) {
       throw new NotFoundException('Produto');
     }
 
-    // Transação garante atomicidade: ou ambas operações funcionam, ou nenhuma
     await this.dataSource.transaction(async (manager) => {
       const historyRecord = manager.create(History, {
         type: 'exit',
@@ -264,36 +266,44 @@ export class ProductsService {
 
     for (const item of dto.products) {
       try {
-        const product = await this.productRepository.findById(item.id);
+        // Cada produto em transação própria com SELECT FOR UPDATE
+        // Evita race condition: leitura e escrita atômicas, sem read-modify-write concorrente
+        await this.dataSource.transaction(async (manager) => {
+          const product = await manager
+            .createQueryBuilder(Product, 'product')
+            .setLock('pessimistic_write')
+            .where('product.uuid = :uuid', { uuid: item.id })
+            .getOne();
 
-        if (!product) {
-          results.failed.push({ id: item.id, error: 'Produto não encontrado' });
-          continue;
-        }
+          if (!product) {
+            throw new Error('Produto não encontrado');
+          }
 
-        if (item.name !== undefined) product.name = item.name;
-        if (item.category_id !== undefined) product.category_id = item.category_id;
-        if (item.location_id !== undefined) product.location_id = item.location_id;
-        if (item.quantity !== undefined) product.quantity = item.quantity;
-        if (item.minimum_stock !== undefined) product.minimum_stock = item.minimum_stock;
-        if (item.image !== undefined) product.image = item.image;
+          const previousQuantity = product.quantity;
 
-        product.updateStockStatus();
-        const updatedProduct = await this.productRepository.update(product);
+          if (item.name !== undefined) product.name = item.name;
+          if (item.category_id !== undefined) product.category_id = item.category_id;
+          if (item.location_id !== undefined) product.location_id = item.location_id;
+          if (item.quantity !== undefined) product.quantity = item.quantity;
+          if (item.minimum_stock !== undefined) product.minimum_stock = item.minimum_stock;
+          if (item.image !== undefined) product.image = item.image;
 
-        await this.historyRepository.create({
-          type: 'adjustment',
-          product_id: updatedProduct.uuid,
-          user_id: userId,
-          categories_id: updatedProduct.category_id,
-          locations_id: updatedProduct.location_id,
-          quantity_changed:
-            item.quantity !== undefined && item.quantity !== product.quantity
-              ? item.quantity - product.quantity
-              : 0,
-          previous_quantity: product.quantity,
-          new_quantity: updatedProduct.quantity,
-          observation: 'Produto atualizado em lote',
+          product.updateStockStatus();
+          await manager.save(Product, product);
+
+          const historyRecord = manager.create(History, {
+            type: 'adjustment',
+            product_id: product.uuid,
+            user_id: userId,
+            categories_id: product.category_id,
+            locations_id: product.location_id,
+            quantity_changed:
+              item.quantity !== undefined ? item.quantity - previousQuantity : 0,
+            previous_quantity: previousQuantity,
+            new_quantity: product.quantity,
+            observation: 'Produto atualizado em lote',
+          });
+          await manager.save(History, historyRecord);
         });
 
         results.updated.push(item.id);
@@ -320,7 +330,7 @@ export class ProductsService {
 
     for (const id of dto.ids) {
       try {
-        const product = await this.productRepository.findById(id);
+        const product = await this.productRepository.findById(id, userId);
 
         if (!product) {
           results.failed.push({ id, error: 'Produto não encontrado' });

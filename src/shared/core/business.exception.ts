@@ -8,12 +8,12 @@ export class BusinessException extends HttpException {
 
 export class NotFoundException extends BusinessException {
   constructor(resource: string) {
-    super(`${resource} não encontrado`, HttpStatus.NOT_FOUND);
+    super(`${resource} n�o encontrado`, HttpStatus.NOT_FOUND);
   }
 }
 
 export class UnauthorizedException extends BusinessException {
-  constructor(message: string = 'Não autorizado') {
+  constructor(message: string = 'N�o autorizado') {
     super(message, HttpStatus.UNAUTHORIZED);
   }
 }
@@ -21,5 +21,17 @@ export class UnauthorizedException extends BusinessException {
 export class ConflictException extends BusinessException {
   constructor(message: string) {
     super(message, HttpStatus.CONFLICT);
+  }
+}
+
+export class ForbiddenException extends BusinessException {
+  constructor(message: string = 'Acesso negado') {
+    super(message, HttpStatus.FORBIDDEN);
+  }
+}
+
+export class BadRequestException extends BusinessException {
+  constructor(message: string) {
+    super(message, HttpStatus.BAD_REQUEST);
   }
 }

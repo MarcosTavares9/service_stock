@@ -3,12 +3,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { EntityStatus } from '../../../shared/utils/entity-status.enum';
 
 export class UpdateLocationDto {
-  @ApiProperty({ example: 'Estoque A', required: false })
+  @ApiProperty({ example: 'Estoque A', required: false, description: 'Nome da localização' })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiProperty({ example: 'Estoque principal', required: false })
+  @ApiProperty({
+    example: 'Estoque principal',
+    required: false,
+    description: 'Descrição da localização',
+  })
   @IsOptional()
   @IsString()
   description?: string;

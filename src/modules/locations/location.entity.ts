@@ -4,16 +4,21 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
 @Entity('locations')
+@Unique(['name', 'user_id'])
 export class Location {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
+
+  @Column({ name: 'user_id' })
+  user_id: string;
 
   @Column({ nullable: true })
   description?: string;

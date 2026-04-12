@@ -9,17 +9,17 @@ import {
 } from '../../../shared/utils/example-values';
 
 export class UpdateUserDto {
-  @ApiProperty({ example: EXAMPLE_NAME, required: false })
+  @ApiProperty({ example: EXAMPLE_NAME, required: false, description: 'Nome do usuário' })
   @IsOptional()
   @IsString()
   firstName?: string;
 
-  @ApiProperty({ example: EXAMPLE_LAST_NAME, required: false })
+  @ApiProperty({ example: EXAMPLE_LAST_NAME, required: false, description: 'Sobrenome do usuário' })
   @IsOptional()
   @IsString()
   lastName?: string;
 
-  @ApiProperty({ example: EXAMPLE_EMAIL, required: false })
+  @ApiProperty({ example: EXAMPLE_EMAIL, required: false, description: 'Email do usuário' })
   @IsOptional()
   @IsEmail({}, { message: 'Email inválido' })
   email?: string;
@@ -34,7 +34,11 @@ export class UpdateUserDto {
   @IsEnum(EntityStatus)
   status?: string;
 
-  @ApiProperty({ example: EXAMPLE_PASSWORD, required: false })
+  @ApiProperty({
+    example: EXAMPLE_PASSWORD,
+    required: false,
+    description: 'Nova senha (mínimo 6 caracteres)',
+  })
   @IsOptional()
   @IsString()
   @MinLength(6, { message: 'Senha deve ter no mínimo 6 caracteres' })
@@ -44,6 +48,7 @@ export class UpdateUserDto {
     example: 'https://firebasestorage.googleapis.com/...',
     required: false,
     nullable: true,
+    description: 'URL da foto de perfil (null para remover)',
   })
   @IsOptional()
   @ValidateIf((_object, value) => value !== null)

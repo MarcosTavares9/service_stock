@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
@@ -21,12 +22,16 @@ export type IconName =
   | 'box';
 
 @Entity('categories')
+@Unique(['name', 'user_id'])
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
+
+  @Column({ name: 'user_id' })
+  user_id: string;
 
   @Column({ name: 'icon_name' })
   icon_name: string;

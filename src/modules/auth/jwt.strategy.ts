@@ -4,7 +4,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from './user.repository';
 import { AppConfig } from '../../shared/config/app.config';
-import { EntityStatus } from '../../shared/utils/entity-status.enum';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,18 +19,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { id: string; email: string }) {
+  async validate(payload: { id: string; email: string; role: string }) {
     const user = await this.userRepository.findById(payload.id);
 
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    // TODO: Reativar validação de status quando necessário
-    // if (user.status !== EntityStatus.ACTIVE) {
-    //   throw new UnauthorizedException(`Usuário não está ativo. Status atual: ${user.status}`);
-    // }
-
-    return { id: user.id, email: user.email };
+    // Sempre usa a role do banco, nunca confia apenas no payload do token
+    return { id: user.id, email: user.email, role: user.role };
   }
 }

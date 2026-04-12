@@ -15,7 +15,6 @@ export class History {
   @Column()
   type: string;
 
-  // Sem FK — tabela de auditoria deve manter o UUID mesmo após deleção do produto
   @Column({ name: 'product_id', type: 'uuid', nullable: true })
   product_id?: string;
 

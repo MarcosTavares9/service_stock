@@ -10,7 +10,7 @@ class BulkUpdateItemDto extends UpdateProductDto {
 }
 
 export class BulkUpdateProductDto {
-  @ApiProperty({ type: [BulkUpdateItemDto] })
+  @ApiProperty({ type: [BulkUpdateItemDto], description: 'Lista de produtos para atualizar' })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => BulkUpdateItemDto)
