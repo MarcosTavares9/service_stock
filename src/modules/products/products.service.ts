@@ -101,7 +101,7 @@ export class ProductsService {
       throw new NotFoundException('Produto');
     }
 
-    const valoresAnteriores = {
+    const anterior = {
       name: product.name,
       category_id: product.category_id,
       location_id: product.location_id,
@@ -121,83 +121,101 @@ export class ProductsService {
 
     const updatedProduct = await this.productRepository.update(product);
 
-    let categoriaAnteriorNome: string | null = null;
-    let categoriaNovaNome: string | null = null;
-    let localizacaoAnteriorNome: string | null = null;
-    let localizacaoNovaNome: string | null = null;
-
-    if (dto.category_id !== undefined && dto.category_id !== valoresAnteriores.category_id) {
-      if (valoresAnteriores.category_id) {
-        const categoriaAnterior = await this.categoryRepository.findById(
-          valoresAnteriores.category_id,
-          userId,
-        );
-        categoriaAnteriorNome = categoriaAnterior?.name || 'Desconhecida';
-      }
-      const categoriaNova = await this.categoryRepository.findById(dto.category_id, userId);
-      categoriaNovaNome = categoriaNova?.name || 'Desconhecida';
-    }
-
-    if (dto.location_id !== undefined && dto.location_id !== valoresAnteriores.location_id) {
-      if (valoresAnteriores.location_id) {
-        const localizacaoAnterior = await this.locationRepository.findById(
-          valoresAnteriores.location_id,
-          userId,
-        );
-        localizacaoAnteriorNome = localizacaoAnterior?.name || 'Desconhecida';
-      }
-      const localizacaoNova = await this.locationRepository.findById(dto.location_id, userId);
-      localizacaoNovaNome = localizacaoNova?.name || 'Desconhecida';
-    }
-
-    const alteracoes: string[] = [];
-
-    if (dto.name !== undefined && dto.name !== valoresAnteriores.name) {
-      alteracoes.push(`Nome: "${valoresAnteriores.name}" → "${dto.name}"`);
-    }
-
-    if (dto.category_id !== undefined && dto.category_id !== valoresAnteriores.category_id) {
-      alteracoes.push(
-        `Categoria alterada de "${categoriaAnteriorNome || 'Nenhuma'}" para "${categoriaNovaNome}"`,
-      );
-    }
-
-    if (dto.location_id !== undefined && dto.location_id !== valoresAnteriores.location_id) {
-      alteracoes.push(
-        `Localização alterada de "${localizacaoAnteriorNome || 'Nenhuma'}" para "${localizacaoNovaNome}"`,
-      );
-    }
-
-    if (dto.quantity !== undefined && dto.quantity !== valoresAnteriores.quantity) {
-      alteracoes.push(`Quantidade: ${valoresAnteriores.quantity} → ${dto.quantity}`);
-    }
-
-    if (dto.minimum_stock !== undefined && dto.minimum_stock !== valoresAnteriores.minimum_stock) {
-      alteracoes.push(`Estoque mínimo: ${valoresAnteriores.minimum_stock} → ${dto.minimum_stock}`);
-    }
-
-    if (dto.image !== undefined && dto.image !== valoresAnteriores.image) {
-      alteracoes.push(`Imagem alterada`);
-    }
+    const relatedNames = await this.fetchRelatedNames(dto, anterior, userId);
+    const alteracoes = this.buildChangeLog(dto, anterior, relatedNames);
 
     if (alteracoes.length > 0) {
-      const quantidadeMudou =
-        dto.quantity !== undefined && dto.quantity !== valoresAnteriores.quantity;
-
+      const quantidadeMudou = dto.quantity !== undefined && dto.quantity !== anterior.quantity;
       await this.historyRepository.create({
         type: 'adjustment',
         product_id: updatedProduct.uuid,
         user_id: userId,
         categories_id: updatedProduct.category_id,
         locations_id: updatedProduct.location_id,
-        quantity_changed: quantidadeMudou ? dto.quantity! - valoresAnteriores.quantity : 0,
-        previous_quantity: valoresAnteriores.quantity,
+        quantity_changed: quantidadeMudou ? dto.quantity! - anterior.quantity : 0,
+        previous_quantity: anterior.quantity,
         new_quantity: updatedProduct.quantity,
         observation: `Produto atualizado. Alterações: ${alteracoes.join('; ')}`,
       });
     }
 
     return updatedProduct;
+  }
+
+  private async fetchRelatedNames(
+    dto: UpdateProductDto,
+    anterior: { category_id?: string; location_id?: string },
+    userId: string,
+  ) {
+    let categoriaAnteriorNome: string | null = null;
+    let categoriaNovaNome: string | null = null;
+    let localizacaoAnteriorNome: string | null = null;
+    let localizacaoNovaNome: string | null = null;
+
+    if (dto.category_id !== undefined && dto.category_id !== anterior.category_id) {
+      if (anterior.category_id) {
+        const cat = await this.categoryRepository.findById(anterior.category_id, userId);
+        categoriaAnteriorNome = cat?.name || 'Desconhecida';
+      }
+      const catNova = await this.categoryRepository.findById(dto.category_id, userId);
+      categoriaNovaNome = catNova?.name || 'Desconhecida';
+    }
+
+    if (dto.location_id !== undefined && dto.location_id !== anterior.location_id) {
+      if (anterior.location_id) {
+        const loc = await this.locationRepository.findById(anterior.location_id, userId);
+        localizacaoAnteriorNome = loc?.name || 'Desconhecida';
+      }
+      const locNova = await this.locationRepository.findById(dto.location_id, userId);
+      localizacaoNovaNome = locNova?.name || 'Desconhecida';
+    }
+
+    return { categoriaAnteriorNome, categoriaNovaNome, localizacaoAnteriorNome, localizacaoNovaNome };
+  }
+
+  private buildChangeLog(
+    dto: UpdateProductDto,
+    anterior: {
+      name: string;
+      category_id?: string;
+      location_id?: string;
+      quantity: number;
+      minimum_stock: number;
+      image?: string;
+    },
+    names: {
+      categoriaAnteriorNome: string | null;
+      categoriaNovaNome: string | null;
+      localizacaoAnteriorNome: string | null;
+      localizacaoNovaNome: string | null;
+    },
+  ): string[] {
+    const alteracoes: string[] = [];
+
+    if (dto.name !== undefined && dto.name !== anterior.name) {
+      alteracoes.push(`Nome: "${anterior.name}" → "${dto.name}"`);
+    }
+    if (dto.category_id !== undefined && dto.category_id !== anterior.category_id) {
+      alteracoes.push(
+        `Categoria alterada de "${names.categoriaAnteriorNome || 'Nenhuma'}" para "${names.categoriaNovaNome}"`,
+      );
+    }
+    if (dto.location_id !== undefined && dto.location_id !== anterior.location_id) {
+      alteracoes.push(
+        `Localização alterada de "${names.localizacaoAnteriorNome || 'Nenhuma'}" para "${names.localizacaoNovaNome}"`,
+      );
+    }
+    if (dto.quantity !== undefined && dto.quantity !== anterior.quantity) {
+      alteracoes.push(`Quantidade: ${anterior.quantity} → ${dto.quantity}`);
+    }
+    if (dto.minimum_stock !== undefined && dto.minimum_stock !== anterior.minimum_stock) {
+      alteracoes.push(`Estoque mínimo: ${anterior.minimum_stock} → ${dto.minimum_stock}`);
+    }
+    if (dto.image !== undefined && dto.image !== anterior.image) {
+      alteracoes.push(`Imagem alterada`);
+    }
+
+    return alteracoes;
   }
 
   async delete(uuid: string, userId?: string) {

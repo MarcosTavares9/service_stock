@@ -106,9 +106,7 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   async get(@Param('id') id: string, @CurrentUser() currentUser: AuthUser) {
-    if (!MANAGER_ROLES.includes(currentUser.role) && currentUser.id !== id) {
-      throw new ForbiddenException('Acesso negado');
-    }
+    this.assertManagerOrOwner(currentUser, id);
     return this.usersService.getProfile(id);
   }
 
@@ -123,9 +121,7 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   @ApiResponse({ status: 404, description: 'Perfil não encontrado' })
   async getProfile(@Param('id') id: string, @CurrentUser() currentUser: AuthUser) {
-    if (!MANAGER_ROLES.includes(currentUser.role) && currentUser.id !== id) {
-      throw new ForbiddenException('Acesso negado');
-    }
+    this.assertManagerOrOwner(currentUser, id);
     return this.usersService.getProfile(id);
   }
 
@@ -143,9 +139,7 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
     @CurrentUser() currentUser: AuthUser,
   ) {
-    if (!ADMIN_ROLES.includes(currentUser.role) && currentUser.id !== id) {
-      throw new ForbiddenException('Acesso negado');
-    }
+    this.assertAdminOrOwner(currentUser, id);
     return this.usersService.updateProfile(id, dto);
   }
 
@@ -164,9 +158,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() currentUser: AuthUser,
   ) {
-    if (!ADMIN_ROLES.includes(currentUser.role) && currentUser.id !== id) {
-      throw new ForbiddenException('Acesso negado');
-    }
+    this.assertAdminOrOwner(currentUser, id);
     FileUtil.validateImage(file);
     const photoUrl = `${AppConfig.getUsersUploadPath()}/${FileUtil.generateFileName(file.originalname)}`;
     return { fotoPerfil: photoUrl };
@@ -181,9 +173,19 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Foto removida com sucesso' })
   @ApiResponse({ status: 403, description: 'Acesso negado' })
   async deleteProfilePicture(@Param('id') id: string, @CurrentUser() currentUser: AuthUser) {
-    if (!ADMIN_ROLES.includes(currentUser.role) && currentUser.id !== id) {
+    this.assertAdminOrOwner(currentUser, id);
+    return { message: 'Foto removida com sucesso' };
+  }
+
+  private assertManagerOrOwner(currentUser: AuthUser, targetId: string): void {
+    if (!MANAGER_ROLES.includes(currentUser.role) && currentUser.id !== targetId) {
       throw new ForbiddenException('Acesso negado');
     }
-    return { message: 'Foto removida com sucesso' };
+  }
+
+  private assertAdminOrOwner(currentUser: AuthUser, targetId: string): void {
+    if (!ADMIN_ROLES.includes(currentUser.role) && currentUser.id !== targetId) {
+      throw new ForbiddenException('Acesso negado');
+    }
   }
 }

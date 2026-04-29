@@ -20,15 +20,16 @@ export class CategoryRepository implements ICategoryRepository {
     private readonly repository: Repository<Category>,
   ) {}
 
-  async findById(uuid: string, _userId?: string): Promise<Category | null> {
-    return this.repository.findOne({ where: { uuid } });
+  async findById(uuid: string, userId?: string): Promise<Category | null> {
+    const where: Partial<Category> = { uuid };
+    if (userId) where.user_id = userId;
+    return this.repository.findOne({ where });
   }
 
-  async findAll(_userId?: string): Promise<Category[]> {
-    return this.repository.find({
-      where: { status: EntityStatus.ACTIVE },
-      order: { name: 'ASC' },
-    });
+  async findAll(userId?: string): Promise<Category[]> {
+    const where: Partial<Category> = { status: EntityStatus.ACTIVE };
+    if (userId) where.user_id = userId;
+    return this.repository.find({ where, order: { name: 'ASC' } });
   }
 
   async findByName(name: string, userId: string): Promise<Category | null> {
