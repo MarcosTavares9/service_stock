@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { HistoryModule } from './modules/history/history.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 import { DatabaseConfig } from './shared/config/database.config';
 
 @Module({
@@ -33,6 +34,9 @@ import { DatabaseConfig } from './shared/config/database.config';
         DB_SYNCHRONIZE: Joi.string().valid('true', 'false').optional(),
         JWT_SECRET: Joi.string().min(16).required(),
         UPLOAD_PATH: Joi.string().optional(),
+        CLOUDINARY_CLOUD_NAME: Joi.string().optional(),
+        CLOUDINARY_API_KEY: Joi.string().optional(),
+        CLOUDINARY_API_SECRET: Joi.string().optional(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -46,6 +50,7 @@ import { DatabaseConfig } from './shared/config/database.config';
     HistoryModule,
     DashboardModule,
     ReportsModule,
+    UploadsModule,
   ],
 })
 export class AppModule {}
